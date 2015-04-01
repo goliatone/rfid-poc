@@ -2,6 +2,6 @@
 uuid: '3444d6844dd36514dd44411455cfb596'
 
 [requests]
-uri = '/command/'
-host = 'myserver.com'
-url_template = 'http://%s%s%s'
+uri = /command/
+host = myserver.com
+url_template = http://%s%s%s
