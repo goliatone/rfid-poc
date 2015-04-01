@@ -2,10 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import argparse
+import traceback
 import time
 import httplib
 import requests
 import json
+import ConfigParser
 from evdev import InputDevice, list_devices, categorize, ecodes
 
 SCANCODES = {
@@ -20,11 +23,13 @@ SCANCODES = {
 
 KEY_ENTER = 'KEY_ENTER'
 DEVICE_NAME = 'RFIDeas USB Keyboard'
-URI = '/command/on'
-HOST = '192.168.1.145'
-PORT = '3030'
-URL_TEMPLATE = 'http://%s:%s%s'
-UUID = '34add6809dd36514dd43811455cfb596'
+
+URI = None
+HOST = None
+URL_TEMPLATE = None
+UUID = None
+
+ON_RFID = None
 
 
 def get_default_payload(rfid):
@@ -34,7 +39,9 @@ def get_default_payload(rfid):
 def make_request(rfid):
     payload = get_default_payload(rfid)
 
-    url = URL_TEMPLATE % (HOST, PORT, URI)
+    command = 'on' if (rfid == ON_RFID) else 'off'
+
+    url = URL_TEMPLATE % (HOST, URI, command)
     headers = {'content-type': 'application/json'}
 
     try:
@@ -83,7 +90,31 @@ def init(dev):
 def cleanup(device):
     device.ungrab()
 
+
+def configure(path='config.ini'):
+    config = ConfigParser.ConfigParser()
+    config.read(path)
+
+    URI = config.get('requests', 'uri')
+    HOST = config.get('requests', 'host')
+    URL_TEMPLATE = config.get('requests', 'url_template')
+
+    UUID = config.get('auth', 'uuid')
+
+    print "Initialize %s" %UUID
+
+
 if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description='RFID demo')
+    parser.add_argument('-o', '--on', required=True, help='RFID associated with on command')
+    args = parser.parse_args()
+
+    ON_RFID = args.on
+
+    config_path = args.config
+    configure(path=config_path)
+
     device_name = get_scanner_device()
     device = init(device_name)
 
