@@ -24,12 +24,12 @@ SCANCODES = {
 KEY_ENTER = 'KEY_ENTER'
 DEVICE_NAME = 'RFIDeas USB Keyboard'
 
-URI = None
-HOST = None
-URL_TEMPLATE = None
-UUID = None
+URI = ''
+HOST = ''
+URL_TEMPLATE = ''
+UUID = ''
 
-ON_RFID = None
+ON_RFID = 0
 
 
 def get_default_payload(rfid):
@@ -95,6 +95,7 @@ def configure(path='config.ini'):
     config = ConfigParser.ConfigParser()
     config.read(path)
 
+    global URI, HOST, URL_TEMPLATE, UUID
     URI = config.get('requests', 'uri')
     HOST = config.get('requests', 'host')
     URL_TEMPLATE = config.get('requests', 'url_template')
@@ -108,6 +109,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='RFID demo')
     parser.add_argument('-o', '--on', required=True, help='RFID associated with on command')
+    parser.add_argument('-C', '--config', default='config.ini', help='Path to config file')
     args = parser.parse_args()
 
     ON_RFID = args.on
@@ -118,13 +120,13 @@ if __name__ == "__main__":
     device_name = get_scanner_device()
     device = init(device_name)
 
-    print "Found device: %s" % DEVICE_NAME
+    print 'Found device: %s' % DEVICE_NAME
 
     while True:
         try:
             rfid = read_input(device)
             make_request(rfid)
-            print "RFID card read, value: %s" %rfid
+            print 'RFID card read, value: %s' %rfid
         except ValueError:
             time.sleep(0.1)
         except Exception, e:
