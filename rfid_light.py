@@ -20,9 +20,9 @@ SCANCODES = {
 
 KEY_ENTER = 'KEY_ENTER'
 DEVICE_NAME = 'RFIDeas USB Keyboard'
-URI = '/lights/read'
+URI = '/command/on'
 HOST = '192.168.1.145'
-PORT = '3000'
+PORT = '3030'
 URL_TEMPLATE = 'http://%s:%s%s'
 UUID = '34add6809dd36514dd43811455cfb596'
 
