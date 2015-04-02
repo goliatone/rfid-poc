@@ -87,6 +87,5 @@ nosetests.xml
 .pydevproject
 
 
-#Secrets
-config.ini
-ftpsync.settings
+#Cruft
+.tmp
