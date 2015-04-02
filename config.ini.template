@@ -1,7 +1,8 @@
 [auth]
-uuid: '3444d6844dd36514dd44411455cfb596'
+uuid: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+token: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
 
 [requests]
 uri = /command/
-host = myserver.com
+host = your.endpoint.com
 url_template = http://%s%s%s
