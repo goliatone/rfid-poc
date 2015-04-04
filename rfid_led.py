@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import signal
 import argparse
 import traceback
 import time
@@ -116,7 +117,7 @@ if __name__ == "__main__":
     signal.signal(signal.SIGTERM, sigterm_handler)
 
     parser = argparse.ArgumentParser(description='RFID demo')
-    parser.add_argument('-o', '--on', required=True, help='RFID associated with on command')
+    parser.add_argument('-O', '--on', required=True, help='RFID associated with on command')
     parser.add_argument('-C', '--config', default='config.ini', help='Path to config file')
     args = parser.parse_args()
 
