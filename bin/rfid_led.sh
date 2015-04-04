@@ -8,15 +8,12 @@
 # Short-Description: rfid_led
 # Description:       rfid_led
 ### END INIT INFO
-# PATH should only include /usr/* if it runs after the mountnfs.sh script
-# usr/local/bin/node
-PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC=rfid_led
 NAME=rfid_led
 
-DIR=/home/pi/CODE/rfideas/
-DAEMON=$DIR/rfid_led
-DAEMON_NAME="rfid_led"
+APP_ROOT=/home/pi/CODE/rfideas
+DAEMON=$APP_ROOT/rfid_led.py
+DAEMON_NAME=rfid_led
 
 # Add any command line options for your daemon here
 DAEMON_ARGS=""
@@ -27,9 +24,6 @@ DAEMON_USER=root
 
 # The process ID of the script when it runs is stored here:
 PIDFILE=/var/run/$DAEMON_NAME.pid
-
-# Exit if the package is not installed
-[ -x "$DAEMON" ] || exit 0
 
 # Read configuration variable file if it is present
 [ -r /etc/default/$NAME ] && . /etc/default/$NAME
@@ -54,13 +48,13 @@ do_start()
     #   0 if daemon has been started
     #   1 if daemon was already running
     #   2 if daemon could not be started
-    start-stop-daemon --start --verbose \
-        --chuid $DAEMON_USER:$DAEMON_USER --chdir $APP_ROOT --background \
-        --pidfile $PIDFILE --exec $DAEMON --test > /dev/null \
+    start-stop-daemon --start --background \
+        --chuid $DAEMON_USER:$DAEMON_USER  \
+        --pidfile $PIDFILE --exec $DAEMON --startas $DAEMON > /dev/null \
         || return 1
-    start-stop-daemon --start --verbose \
-        --chuid $DAEMON_USER:$DAEMON_USER --chdir $APP_ROOT --background \
-        --make-pidfile --pidfile $PIDFILE --exec $DAEMON -- $DAEMON_ARGS \
+    start-stop-daemon --start --background \
+        --chuid $DAEMON_USER:$DAEMON_USER  \
+        --make-pidfile --pidfile $PIDFILE --startas $DAEMON -- $DAEMON_ARGS \
         || return 2
     # Add code here, if necessary, that waits for the process to be ready
     # to handle requests from services started subsequently which depend
@@ -86,20 +80,6 @@ do_stop()
     return "$RETVAL"
 }
 
-#
-# Function that sends a SIGHUP to the daemon/service
-#
-do_reload() {
-    #
-    # If the daemon can reload its configuration without
-    # restarting (for example, when it is sent a SIGHUP),
-    # then implement that here.
-    #
-    start-stop-daemon --stop --signal 1 --quiet --pidfile $PIDFILE \
-        --exec $DAEMON
-    return 0
-}
-
 case "$1" in
   start)
     [ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
@@ -120,12 +100,7 @@ case "$1" in
   status)
     status_of_proc "$DAEMON" "$NAME" && exit 0 || exit $?
     ;;
-  reload|force-reload)
-    log_daemon_msg "Reloading $DESC" "$NAME"
-    do_reload
-    log_end_msg $?
-    ;;
-  restart|force-reload)
+  restart|reload|force-reload)
     log_daemon_msg "Restarting $DESC" "$NAME"
     do_stop
     case "$?" in
@@ -148,6 +123,4 @@ case "$1" in
     exit 3
     ;;
 esac
-
 :
-
