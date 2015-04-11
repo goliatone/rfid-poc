@@ -1,126 +1,60 @@
 #!/bin/sh
 ### BEGIN INIT INFO
 # Provides:          rfid_led
-# Required-Start:    $network $syslog
-# Required-Stop:     $network $syslog
+# Required-Start:    $remote_fs $syslog $network
+# Required-Stop:     $remote_fs $syslog $network
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
-# Short-Description: rfid_led
-# Description:       rfid_led
+# Short-Description: init.d script for rfid_led service
+# Description:       rfid_led is an RFID card reader controlling an LED
 ### END INIT INFO
-DESC=rfid_led
+
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 NAME=rfid_led
 
 APP_ROOT=/home/pi/CODE/rfideas
 DAEMON=$APP_ROOT/rfid_led.py
-DAEMON_NAME=rfid_led
 
 # Add any command line options for your daemon here
-DAEMON_ARGS=""
-
-# This next line determines what user the script runs as.
-# Root generally not recommended but necessary if you are using the Raspberry Pi GPIO from Python.
-DAEMON_USER=root
+DAEMONARGS="-C $APP_ROOT/config.ini -O 2714"
 
 # The process ID of the script when it runs is stored here:
-PIDFILE=/var/run/$DAEMON_NAME.pid
+PIDFILE=/var/run/$NAME.pid
 
-# Read configuration variable file if it is present
-[ -r /etc/default/$NAME ] && . /etc/default/$NAME
-
-# Load the VERBOSE setting and other rcS variables
-. /lib/init/vars.sh
-
-# I like to know what is going on, don't you?
-VERBOSE=yes
+# The process log file
+LOGFILE=/var/log/$NAME.log
 
 # Define LSB log_* functions.
 # Depend on lsb-base (>= 3.2-14) to ensure that this file is present
 # and status_of_proc is working.
 . /lib/lsb/init-functions
 
-#
-# Function that starts the daemon/service
-#
-do_start()
-{
-    # Return
-    #   0 if daemon has been started
-    #   1 if daemon was already running
-    #   2 if daemon could not be started
-    start-stop-daemon --start --background \
-        --chuid $DAEMON_USER:$DAEMON_USER  \
-        --pidfile $PIDFILE --exec $DAEMON --startas $DAEMON > /dev/null \
-        || return 1
-    start-stop-daemon --start --background \
-        --chuid $DAEMON_USER:$DAEMON_USER  \
-        --make-pidfile --pidfile $PIDFILE --startas $DAEMON -- $DAEMON_ARGS \
-        || return 2
-    # Add code here, if necessary, that waits for the process to be ready
-    # to handle requests from services started subsequently which depend
-    # on this one.  As a last resort, sleep for some time.
-}
-
-#
-# Function that stops the daemon/service
-#
-do_stop()
-{
-    # Return
-    #   0 if daemon has been stopped
-    #   1 if daemon was already stopped
-    #   2 if daemon could not be stopped
-    #   other if a failure occurred
-    start-stop-daemon --stop --quiet --retry=TERM/30/KILL/5 \
-        --pidfile $PIDFILE --exec $DAEMON
-    RETVAL="$?"
-    [ "$RETVAL" = 2 ] && return 2
-    # Many daemons don't delete their pidfiles when they exit.
-    rm -f $PIDFILE
-    return "$RETVAL"
-}
+test -f $DAEMON || exit 0
 
 case "$1" in
-  start)
-    [ "$VERBOSE" != no ] && log_daemon_msg "Starting $DESC" "$NAME"
-    do_start
-    case "$?" in
-        0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
-        2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
-    esac
-    ;;
-  stop)
-    [ "$VERBOSE" != no ] && log_daemon_msg "Stopping $DESC" "$NAME"
-    do_stop
-    case "$?" in
-        0|1) [ "$VERBOSE" != no ] && log_end_msg 0 ;;
-        2) [ "$VERBOSE" != no ] && log_end_msg 1 ;;
-    esac
-    ;;
-  status)
-    status_of_proc "$DAEMON" "$NAME" && exit 0 || exit $?
-    ;;
-  restart|reload|force-reload)
-    log_daemon_msg "Restarting $DESC" "$NAME"
-    do_stop
-    case "$?" in
-      0|1)
-        do_start
-        case "$?" in
-            0) log_end_msg 0 ;;
-            1) log_end_msg 1 ;; # Old process is still running
-            *) log_end_msg 1 ;; # Failed to start
-        esac
+    start)
+        start-stop-daemon --start --background \
+            --pidfile $PIDFILE --make-pidfile --startas /bin/bash \
+            -- -c "exec stdbuf -oL -eL $DAEMON $DAEMONARGS > $LOGFILE 2>&1"
+        log_end_msg $?
         ;;
-      *)
-        # Failed to stop
-        log_end_msg 1
+    stop)
+        start-stop-daemon --stop --pidfile $PIDFILE
+        log_end_msg $?
+        rm -f $PIDFILE
         ;;
-    esac
-    ;;
-  *)
-    echo "Usage: $SCRIPTNAME {start|stop|status|restart|force-reload}" >&2
-    exit 3
-    ;;
+    restart)
+        $0 stop
+        $0 start
+        ;;
+    status)
+        start-stop-daemon --status --pidfile $PIDFILE
+        log_end_msg $?
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|status}"
+        exit 2
+        ;;
 esac
-:
+
+exit 0
