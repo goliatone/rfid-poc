@@ -106,7 +106,11 @@ def configure(path='config.ini'):
     print "Initialize %s" %UUID
 
 def sigterm_handler(_signo, _stack_frame):
-    "When sysvinit sends the TERM signal, cleanup before exiting."
+    """
+    When sysvinit sends the SIGTERM signal,
+    cleanup before exiting.
+    kill PID
+    """
     print("[" + get_now() + "] received signal {}, exiting...".format(_signo))
     cleanup()
     sys.exit(0)
@@ -116,6 +120,8 @@ if __name__ == "__main__":
     #Register for SIGTERMs
     signal.signal(signal.SIGTERM, sigterm_handler)
 
+    #TODO: Move RFID on/off to config, we should map commands and build from there.
+    #(on, 2427) (off,2222) (toggle, 3333)
     parser = argparse.ArgumentParser(description='RFID demo')
     parser.add_argument('-O', '--on', required=True, help='RFID associated with on command')
     parser.add_argument('-C', '--config', default='config.ini', help='Path to config file')
